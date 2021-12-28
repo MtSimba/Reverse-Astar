@@ -1,10 +1,9 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 
-project(Lena VERSION 1.0)
+project(ReverseAstar
+             DESCRIPTION "A header only c++ library that implements a reversed version of the A* pathfinder algorithm."
+             HOMEPAGE_URL "https://github.com/MtSimba/Reverse-Astar")
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+add_library(ReverseAstar INTERFACE)
 
-
-add_executable(Example Examples/Example01.cpp)
+target_include_directories(ReverseAstar INTERFACE .)
