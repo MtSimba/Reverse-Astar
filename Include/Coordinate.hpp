@@ -1,5 +1,3 @@
-#ifndef COORDINATE_HPP
-#define COORDINATE_HPP
 #pragma once
 
 #include <math.h>
@@ -22,4 +20,3 @@ namespace sp
     };
 
 }
-#endif

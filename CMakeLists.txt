@@ -1,0 +1,6 @@
+CMAKE_MINIMUM_REQUIRED_VERSION(3.15)
+
+project(Lena VERSION 1.0 LANGUAGE CXX)
+
+include(Header)
+

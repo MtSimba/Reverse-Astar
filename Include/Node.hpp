@@ -1,5 +1,3 @@
-#ifndef NODE_HPP
-#define NODE_HPP
 #pragma once 
 
 #include "Coordinate.hpp"
@@ -22,5 +20,3 @@ namespace sp
     inline bool operator<(const Node &a, const Node &b) { return a.f < b.f; }
 
 }
-
-#endif

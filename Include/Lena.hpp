@@ -1,15 +1,47 @@
+#pragma once
+
+#include <vector>
+#include <queue>
+#include <functional>
 #include <fstream>
 #include <algorithm>
 #include <string>
 #include <functional>
-
-#include "Header/Astar.hpp"
-
-using namespace std::placeholders;
+#include "Node.hpp"
 
 namespace sp
 {
-    Astar::Astar() : m_weight(1),
+    using HeuristicFunction = std::function<uint(const Cord &, const Cord &, int)>;
+
+    class Lena
+    {
+    public:
+        Lena();
+        std::vector<Cord> findPath(const Cord &startPos, const Cord &targetPos, HeuristicFunction heuristicFunc, int weight = 1);
+        void loadMap(const std::string &fileName);
+        void setDiagonalMovement(bool enable);
+
+    private:
+        std::vector<Cord> buildPath() const;
+        bool isValid(const Cord &pos) const;
+        bool isBlocked(int index) const;
+        int convertTo1D(const Cord &pos) const;
+
+        int m_weight;
+        int m_size;
+        uint m_nrOfDirections;
+        Cord m_dimensions;
+        Cord m_startPos;
+        Cord m_targetPos;
+        std::priority_queue<Node> m_openList;
+        std::vector<bool> m_closedList;
+        std::vector<Node> m_cameFrom;
+        std::vector<int> m_grid;
+        std::vector<Cord> m_directions;
+        HeuristicFunction m_heuristic;
+    };
+
+    Lena::Lena() : m_weight(1),
                    m_dimensions(0, 0),
                    m_startPos(0, 0),
                    m_targetPos(0, 0),
@@ -19,12 +51,12 @@ namespace sp
         m_directions = {{-1, 0}, {1, 0}, {0, 1}, {0, -1}, {-1, -1}, {1, 1}, {-1, 1}, {1, -1}};
     }
 
-    std::vector<Cord> Astar::findPath(const Cord &startPos, const Cord &targetPos, HeuristicFunction heuristicFunc, int weight)
+    std::vector<Cord> Lena::findPath(const Cord &startPos, const Cord &targetPos, HeuristicFunction heuristicFunc, int weight)
     {
         m_startPos = startPos;
         m_targetPos = targetPos;
         m_weight = weight;
-        m_heuristic = std::bind(heuristicFunc, _1, _2, _3);
+        m_heuristic = std::bind(heuristicFunc, m_startPos, m_targetPos, m_weight);
         m_cameFrom.resize(m_size);
         m_closedList.resize(m_size, false);
 
@@ -62,7 +94,7 @@ namespace sp
                 hNew = m_heuristic(neighborPos, m_targetPos, m_weight);
                 fNew = gNew + hNew;
 
-                if (m_cameFrom[neighborIndex].f == 0 || fNew < m_cameFrom[neighborIndex].f)
+                if (m_cameFrom[neighborIndex].f == 0 || fNew > m_cameFrom[neighborIndex].f)
                 {
                     m_openList.push(Node(neighborPos, fNew));
                     m_cameFrom[neighborIndex] = {neighborPos, currentPos, fNew, gNew, hNew};
@@ -73,7 +105,7 @@ namespace sp
         return buildPath();
     }
 
-    std::vector<Cord> Astar::buildPath() const
+    std::vector<Cord> Lena::buildPath() const
     {
         std::vector<Cord> path;
         auto currentPos = m_targetPos;
@@ -91,7 +123,7 @@ namespace sp
         return path;
     }
 
-    void Astar::loadMap(const std::string &fileName)
+    void Lena::loadMap(const std::string &fileName)
     {
         std::ifstream file(fileName);
 
@@ -132,37 +164,26 @@ namespace sp
         }
     }
 
-    void Astar::setDiagonalMovement(bool enable)
+    void Lena::setDiagonalMovement(bool enable)
     {
         m_nrOfDirections = (enable) ? 8 : 4;
     }
 
-    bool Astar::isValid(const Cord &pos) const
+    bool Lena::isValid(const Cord &pos) const
     {
         return (pos.x >= 0) && (pos.x < m_dimensions.x) &&
                (pos.y >= 0) && (pos.y < m_dimensions.y);
     }
 
-    bool Astar::isBlocked(int index) const
+    bool Lena::isBlocked(int index) const
     {
         return (m_grid[index] == 0);
     }
 
     // Returns a 1D index based on a 2D coordinate using row-major layout
-    int Astar::convertTo1D(const Cord &pos) const
+    int Lena::convertTo1D(const Cord &pos) const
     {
         return (pos.y * m_dimensions.x) + pos.x;
     }
 
-    uint heuristic::manhattan(const Cord &v1, const Cord &v2, int weight)
-    {
-        const auto delta = Cord::getDelta(v1, v2);
-        return static_cast<uint>(weight * (delta.x + delta.y));
-    }
-
-    uint heuristic::euclidean(const Cord &v1, const Cord &v2, int weight)
-    {
-        const auto delta = Cord::getDelta(v1, v2);
-        return static_cast<uint>(weight * sqrt((delta.x * delta.x) + (delta.y * delta.y)));
-    }
 }
