@@ -1,11 +1,9 @@
 #include <iostream>
 #include <string>
 
-#include "Include/Lena.hpp"
-#include "Include/Astar.hpp"
-#include "Include/Heuristic.hpp"
+#include "../Include/Lena.hpp"
+#include "../Include/Astar.hpp"
 
-using namespace sp;
 
 /* display usage */
 int help()
@@ -36,7 +34,7 @@ int main(int argc, char **argv)
 
     else if (std::string(argv[1]) == "-a")
     {
-        Astar astar;
+        Astar::Astar astar;
 
         std::cout << "############## Astar" << std::endl;
 
@@ -46,7 +44,7 @@ int main(int argc, char **argv)
             astar.loadMap(argv[2]);
 
         astar.setDiagonalMovement(false);
-        auto path = astar.findPath(Cord(0, 0), Cord(10, 7), heuristic::euclidean, 10);
+        auto path = astar.findPath(Astar::Cord::Cord(0, 0), Astar::Cord::Cord(10, 7), Astar::heuristic::euclidean, 10);
 
         for (const auto &coord : path)
         {
@@ -57,7 +55,7 @@ int main(int argc, char **argv)
     else if (std::string(argv[1]) == "-l")
     {
 
-        Lena lena;
+        Lena::Lena lena;
         std::cout << "############## Lena" << std::endl;
 
         if (argc < 3)
@@ -66,7 +64,7 @@ int main(int argc, char **argv)
             lena.loadMap(argv[2]);
 
         lena.setDiagonalMovement(false);
-        auto path = lena.findPath(Cord(0, 0), Cord(10, 7), heuristic::euclidean, 10);
+        auto path = lena.findPath(Lena::Cord::Cord(0, 0), Lena::Cord::Cord(10, 7), Lena::heuristic::euclidean, 10);
 
         for (const auto &coord : path)
         {

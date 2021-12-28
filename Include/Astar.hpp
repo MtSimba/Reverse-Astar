@@ -6,38 +6,89 @@
 #include <algorithm>
 #include <string>
 #include <functional>
-#include "Node.hpp"
+#include <math.h>
 
-namespace sp
+namespace Astar
 {
-    using HeuristicFunction = std::function<uint(const Cord &, const Cord &, int)>;
+
+    namespace Cord
+    {
+        struct Cord //cordinate
+        {
+            inline Cord(int x, int y) : x(x), y(y) {}
+            inline Cord() = default;
+
+            inline bool operator==(const Cord &v) const { return (x == v.x) && (y == v.y); }
+            inline const Cord operator+(const Cord &v) const { return Cord(x + v.x, y + v.y); }
+
+            static Cord getDelta(const Cord &v1, const Cord &v2) { return Cord(abs(v1.x - v2.x), abs(v1.y - v2.y)); }
+
+            int x;
+            int y;
+        };
+    }
+
+    namespace Node
+    {
+        struct Node //node
+        {
+            Node() : pos(0, 0), parent(-1, -1), f(0), g(0), h(0) {}
+            Node(const Cord::Cord &pos, uint f) : pos(pos), parent(-1, 1), f(f), g(0), h(0) {}
+            Node(const Cord::Cord &pos, const Cord::Cord &parent, uint f, uint g, uint h) : pos(pos), parent(parent), f(f), g(g), h(h) {}
+            Cord::Cord pos;
+            Cord::Cord parent;
+            uint f;
+            uint g;
+            uint h;
+        };
+        inline bool operator<(const Node &a, const Node &b) { return a.f < b.f; }
+
+    }
+
+    namespace heuristic
+    {
+        uint manhattan(const Cord::Cord &v1, const Cord::Cord &v2, int weight)
+        {
+            const auto delta = Cord::Cord::getDelta(v1, v2);
+            return static_cast<uint>(weight * (delta.x + delta.y));
+        }
+
+        uint euclidean(const Cord::Cord &v1, const Cord::Cord &v2, int weight)
+        {
+            const auto delta = Cord::Cord::getDelta(v1, v2);
+            return static_cast<uint>(weight * sqrt((delta.x * delta.x) + (delta.y * delta.y)));
+        }
+
+        using HeuristicFunction = std::function<uint(const Cord::Cord &, const Cord::Cord &, int)>;
+
+    }
 
     class Astar
     {
     public:
         Astar();
-        std::vector<Cord> findPath(const Cord &startPos, const Cord &targetPos, HeuristicFunction heuristicFunc, int weight = 1);
+        std::vector<Cord::Cord> findPath(const Cord::Cord &startPos, const Cord::Cord &targetPos, heuristic::HeuristicFunction heuristicFunc, int weight = 1);
         void loadMap(const std::string &fileName);
         void setDiagonalMovement(bool enable);
 
     private:
-        std::vector<Cord> buildPath() const;
-        bool isValid(const Cord &pos) const;
+        std::vector<Cord::Cord> buildPath() const;
+        bool isValid(const Cord::Cord &pos) const;
         bool isBlocked(int index) const;
-        int convertTo1D(const Cord &pos) const;
+        int convertTo1D(const Cord::Cord &pos) const;
 
         int m_weight;
         int m_size;
         uint m_nrOfDirections;
-        Cord m_dimensions;
-        Cord m_startPos;
-        Cord m_targetPos;
-        std::priority_queue<Node> m_openList;
+        Cord::Cord m_dimensions;
+        Cord::Cord m_startPos;
+        Cord::Cord m_targetPos;
+        std::priority_queue<Node::Node> m_openList;
         std::vector<bool> m_closedList;
-        std::vector<Node> m_cameFrom;
+        std::vector<Node::Node> m_cameFrom;
         std::vector<int> m_grid;
-        std::vector<Cord> m_directions;
-        HeuristicFunction m_heuristic;
+        std::vector<Cord::Cord> m_directions;
+        heuristic::HeuristicFunction m_heuristic;
     };
 
     Astar::Astar() : m_weight(1),
@@ -50,7 +101,7 @@ namespace sp
         m_directions = {{-1, 0}, {1, 0}, {0, 1}, {0, -1}, {-1, -1}, {1, 1}, {-1, 1}, {1, -1}};
     }
 
-    std::vector<Cord> Astar::findPath(const Cord &startPos, const Cord &targetPos, HeuristicFunction heuristicFunc, int weight)
+    std::vector<Cord::Cord> Astar::findPath(const Cord::Cord &startPos, const Cord::Cord &targetPos, heuristic::HeuristicFunction heuristicFunc, int weight)
     {
         m_startPos = startPos;
         m_targetPos = targetPos;
@@ -60,10 +111,10 @@ namespace sp
         m_closedList.resize(m_size, false);
 
         m_cameFrom[convertTo1D(m_startPos)].parent = m_startPos;
-        m_openList.push(Node(m_startPos, 0));
+        m_openList.push(Node::Node(m_startPos, 0));
 
         uint fNew, gNew, hNew;
-        Cord currentPos;
+        Cord::Cord currentPos;
 
         while (!m_openList.empty())
         {
@@ -95,7 +146,7 @@ namespace sp
 
                 if (m_cameFrom[neighborIndex].f == 0 || fNew < m_cameFrom[neighborIndex].f)
                 {
-                    m_openList.push(Node(neighborPos, fNew));
+                    m_openList.push(Node::Node(neighborPos, fNew));
                     m_cameFrom[neighborIndex] = {neighborPos, currentPos, fNew, gNew, hNew};
                 }
             }
@@ -104,9 +155,9 @@ namespace sp
         return buildPath();
     }
 
-    std::vector<Cord> Astar::buildPath() const
+    std::vector<Cord::Cord> Astar::buildPath() const
     {
-        std::vector<Cord> path;
+        std::vector<Cord::Cord> path;
         auto currentPos = m_targetPos;
         auto currentIndex = convertTo1D(currentPos);
 
@@ -168,7 +219,7 @@ namespace sp
         m_nrOfDirections = (enable) ? 8 : 4;
     }
 
-    bool Astar::isValid(const Cord &pos) const
+    bool Astar::isValid(const Cord::Cord &pos) const
     {
         return (pos.x >= 0) && (pos.x < m_dimensions.x) &&
                (pos.y >= 0) && (pos.y < m_dimensions.y);
@@ -180,7 +231,7 @@ namespace sp
     }
 
     // Returns a 1D index based on a 2D coordinate using row-major layout
-    int Astar::convertTo1D(const Cord &pos) const
+    int Astar::convertTo1D(const Cord::Cord &pos) const
     {
         return (pos.y * m_dimensions.x) + pos.x;
     }
