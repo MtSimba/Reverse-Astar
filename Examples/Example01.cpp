@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
 
-#include "../Include/Lena.hpp"
-#include "../Include/Astar.hpp"
+#include "../Include/ReverseAstar/Lena.hpp"
+#include "../Include/ReverseAstar/Astar.hpp"
 
 
 /* display usage */
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
         std::cout << "############## Astar" << std::endl;
 
         if (argc < 3)
-            astar.loadMap("Maps/Map01.txt");
+            astar.loadMap("../Maps/Map01.txt");
         else
             astar.loadMap(argv[2]);
 
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
         std::cout << "############## Lena" << std::endl;
 
         if (argc < 3)
-            lena.loadMap("Maps/Map01.txt");
+            lena.loadMap("../Maps/Map01.txt");
         else
             lena.loadMap(argv[2]);
 
